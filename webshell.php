@@ -40,6 +40,21 @@
         echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
 
     }
+    else if($mode == "fileModify" && !empty($_POST["fileContents"])){
+        
+        $filePath = $path.$fileName;
+        if(!file_exists($filePath)){
+            echo "<script>alert('파일이 존재하지 않습니다.')</script>";
+            exit();
+        }
+
+        $fileContents = $_POST["fileContents"];
+        $fp = fopen($filePath, "w");
+        fputs($fp, $fileContents, strlen($fileContents));
+        fclose($fp);
+        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+
+    }
 
     # Directory List Return Function
     function getDirList($getPath) {
@@ -91,6 +106,10 @@
                 return;
             }
             location.href = "<?php echo $page ?>?mode=dirCreate&path=<?php echo $path ?>&fileName=" + fileName;
+        }
+
+        function fileModify(fileName) {
+            location.href= "<?php echo $page ?>?mode=fileModify&path=<?php echo $path ?>&fileName=" + fileName;
         }
     </script>
 </head>
@@ -167,7 +186,7 @@
                             <td style="vertical-align: middle" class="text-center">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="...">
                                     <button type="button" class="btn btn-info" title = "File Download"><span class="glyphicon glyphicon-save" aria-hidden"true"></span></button>
-                                    <button type="button" class="btn btn-warning" title = "File Modify"><span class="glyphicon glyphicon-wrench" aria-hidden"true"></span></button>
+                                    <button type="button" class="btn btn-warning" title = "File Modify" onclick="fileModify('<?php echo $fileList[$i] ?>')"><span class="glyphicon glyphicon-wrench" aria-hidden"true"></span></button>
                                     <button type="button" class="btn btn-danger" title ="File Delete"><span class="glyphicon glyphicon-trash" aria-hidden"true"></span></button>
                                 </div>
                             </td>
@@ -189,8 +208,40 @@
                     </span>
                 </div>
             </form>
-            
 
+        <?php  } else if($mode == "fileModify") { ?>
+            <?php
+            if(empty($fileName)) {
+                echo "<script>alert('파일명이 존재하지 않습니다.');history.back(-1);</script>";
+                exit();
+            }
+            $filePath = $path.$fileName;
+            if(!file_exists($filePath)){
+                echo "<script>alert('파일명 존재하지 않습니다.');history.back(-1);</script>";
+                exit();
+            }
+            
+            $fp = fopen($filePath, "r");
+            $fileSize = filesize($filePath);
+            $fileContents = ($fileSize > 0) ? fread($fp, $fileSize) : "";
+
+            fclose($fp);
+            ?>
+
+            <form action="<?php echo $page ?>?mode=fileModify&path=<?php echo $path ?>&fileName=<?php echo $fileName ?>" method="POST">
+                <div class="input-group">
+                    <input type="text" class="form-control" value="<?php echo $path ?><?php echo $fileName?>">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">File Modify</button>
+                    </span>
+                </div>
+
+                <hr>
+                <textarea class="form-control" rows="20" name="fileContents"><?php echo htmlspecialchars($fileContents) ?></textarea>
+            </form>
+            <br>
+            <p class="text-center"><button class="btn btn-default" type="button" onclick="history.back(-1);">Back</button></p>
+        
         <?php } ?>
 
 
