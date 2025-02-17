@@ -99,7 +99,7 @@
                         <td style="vertical-align: middle" class="text-center"><?php echo $dirDate ?></td>
                         <td style="vertical-align: middle" class="text-center">
                             <?php if($dirList[$i] !="..") { ?>
-                            <div class="btn-group btn-group-sm" role="group" aira-label="...">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="...">
                                 <button type="button" class="btn btn-danger" title ="File Delete"><span class="glyphicon glyphicon-trash" aria-hidden"true"></span></button>
                             </div>
                             <?php } ?>
@@ -115,11 +115,11 @@
                         for($i=0;$i<count($fileList);$i++){
                             $fileDate = date("Y-m-d H:i", filemtime($path.$fileList[$i]));
                     ?>
-                        <td style="vertical-align: middle"><span class="glyphicon glyphicon-file" aira-hidden="true"></span> <?php echo $fileList[$i]?></td>
+                        <td style="vertical-align: middle"><span class="glyphicon glyphicon-file" aria-hidden="true"></span> <?php echo $fileList[$i]?></td>
                         <td style="vertical-align: middle" class="text-center"><kbd>file</kbd></td>
                         <td style="vertical-align: middle" class="text-center"><?php echo $fileDate ?></td>
                         <td style="vertical-align: middle" class="text-center">
-                            <div class="btn-group btn-group-sm" role="group" aira-label="...">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="...">
                                 <button type="button" class="btn btn-info" title = "File Download"><span class="glyphicon glyphicon-save" aria-hidden"true"></span></button>
                                 <button type="button" class="btn btn-warning" title = "File Modify"><span class="glyphicon glyphicon-wrench" aria-hidden"true"></span></button>
                                 <button type="button" class="btn btn-danger" title ="File Delete"><span class="glyphicon glyphicon-trash" aria-hidden"true"></span></button>
