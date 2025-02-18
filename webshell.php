@@ -33,7 +33,7 @@
 
         $dirPath = $path.$fileName;
         if(is_dir($dirPath)){ // 디렉터리가 존재하는가?
-            echo "<script>alert('해당 디렉터리 명이 존재합니다.')</script>";
+            echo "<script>alert('해당 디렉터리 명이 존재합니다.');history.back(-1);</script>";
             exit();
         }
         mkdir($dirPath);
@@ -52,6 +52,40 @@
         $fp = fopen($filePath, "w");
         fputs($fp, $fileContents, strlen($fileContents));
         fclose($fp);
+        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+
+    }
+    else if($mode == "fileDelete") {
+        if(empty($fileName)) { 
+            echo "<script>alert('파일명이 입력되지 않았습니다.');history.back(-1);</script>";
+            exit();
+        }
+        $filePath = $path.$fileName;
+        if(!file_exists($filePath)){
+            echo "<script>alert('파일이 존재하지 않습니다.');history.back(-1);</script>";
+            
+            exit();
+        }
+        if(!unlink($filePath)) {
+            echo "<script>alert('파일 삭제 실패');history.back(-1);</script>";
+            exit();
+        }
+        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+    }
+    else if($mode == "dirDelete") {
+        if(empty($fileName)) { 
+            echo "<script>alert('디렉터리명이 입력되지 않았습니다.');history.back(-1);</script>";
+            exit();
+        }
+        $dirPath = $path.$fileName;
+        if(!is_dir($dirPath)){ // 디렉터리가 존재하지 않는가?
+            echo "<script>alert('디렉터리가 존재하지 않습니다.');history.back(-1);</script>";
+            exit();
+        }
+        if(!rmdir($dirPath)){
+            echo "<script>alert('디렉터리 삭제 실패.');history.back(-1);</script>";
+            exit();
+        }
         echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
 
     }
@@ -111,6 +145,17 @@
         function fileModify(fileName) {
             location.href= "<?php echo $page ?>?mode=fileModify&path=<?php echo $path ?>&fileName=" + fileName;
         }
+
+        function dirDelete(fileName) { 
+            if(confirm(fileName + "디렉터리를 삭제하시겠습니까?") == true) { 
+                location.href = "<?php echo $page ?>?mode=dirDelete&path=<?php echo $path ?>&fileName=" + fileName;
+            }
+        }
+        function fileDelete(fileName) { 
+            if(confirm(fileName + "파일을 삭제하시겠습니까?") == true) { 
+                location.href = "<?php echo $page ?>?mode=fileDelete&path=<?php echo $path ?>&fileName=" + fileName;
+            }
+        }
     </script>
 </head>
 <body>
@@ -165,7 +210,7 @@
                             <td style="vertical-align: middle" class="text-center">
                                 <?php if($dirList[$i] !="..") { ?>
                                 <div class="btn-group btn-group-sm" role="group" aria-label="...">
-                                    <button type="button" class="btn btn-danger" title ="File Delete"><span class="glyphicon glyphicon-trash" aria-hidden"true"></span></button>
+                                    <button type="button" class="btn btn-danger" title ="Directory Delete" onclick = "dirDelete('<?php echo $dirList[$i] ?>')"><span class="glyphicon glyphicon-trash" aria-hidden"true"></span></button>
                                 </div>
                                 <?php } ?>
                             </td>
@@ -187,7 +232,7 @@
                                 <div class="btn-group btn-group-sm" role="group" aria-label="...">
                                     <button type="button" class="btn btn-info" title = "File Download"><span class="glyphicon glyphicon-save" aria-hidden"true"></span></button>
                                     <button type="button" class="btn btn-warning" title = "File Modify" onclick="fileModify('<?php echo $fileList[$i] ?>')"><span class="glyphicon glyphicon-wrench" aria-hidden"true"></span></button>
-                                    <button type="button" class="btn btn-danger" title ="File Delete"><span class="glyphicon glyphicon-trash" aria-hidden"true"></span></button>
+                                    <button type="button" class="btn btn-danger" title ="File Delete" onclick="fileDelete('<?php echo $fileList[$i] ?>')"><span class="glyphicon glyphicon-trash" aria-hidden"true"></span></button>
                                 </div>
                             </td>
                         </tr>
