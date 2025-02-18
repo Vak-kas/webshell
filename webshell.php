@@ -87,7 +87,26 @@
             exit();
         }
         echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+    }
+    else if($mode == "fileDownload"){
+        if(empty($fileName)) { 
+            echo "<script>alert('파일명이 입력되지 않았습니다.');history.back(-1);</script>";
+            exit();
+        }
 
+        $filePath = $path.$fileName;
+        if(!file_exists($filePath)){
+            echo "<script>alert('파일이 존재하지 않습니다.');history.back(-1);</script>";
+            exit();
+        }
+
+        header("Content-Type: application/octet-stream"); //파일을 다운로드하게 하기 위한 컨텐트 타입
+        header("Content-Disposition: attachment; fileName= \"{$fileName}\""); #배치 성향, 특성, HTTP 응답값 body값이 어떤 특징을 가지고 있는가? / 첨부파일
+        // -> 이대로 가면 다운로드를 할 수 있게 함.
+        header("Content-transfer-Encoding: binary"); // 인코딩
+
+        readfile($filePath); //경로에 있는 파일을 그대로 불러옴
+        exit(); //얘는 반드시 종료를 해주어야함.
     }
 
     # Directory List Return Function
@@ -155,6 +174,9 @@
             if(confirm(fileName + "파일을 삭제하시겠습니까?") == true) { 
                 location.href = "<?php echo $page ?>?mode=fileDelete&path=<?php echo $path ?>&fileName=" + fileName;
             }
+        }
+        function fileDownload(fileName) {
+            location.href= "<?php echo $page ?>?mode=fileDownload&path=<?php echo $path ?>&fileName=" + fileName;
         }
     </script>
 </head>
@@ -230,7 +252,7 @@
                             <td style="vertical-align: middle" class="text-center"><?php echo $fileDate ?></td>
                             <td style="vertical-align: middle" class="text-center">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="...">
-                                    <button type="button" class="btn btn-info" title = "File Download"><span class="glyphicon glyphicon-save" aria-hidden"true"></span></button>
+                                    <button type="button" class="btn btn-info" title = "File Download" onclick="fileDownload('<?php echo $fileList[$i] ?>')"><span class="glyphicon glyphicon-save" aria-hidden"true"></span></button>
                                     <button type="button" class="btn btn-warning" title = "File Modify" onclick="fileModify('<?php echo $fileList[$i] ?>')"><span class="glyphicon glyphicon-wrench" aria-hidden"true"></span></button>
                                     <button type="button" class="btn btn-danger" title ="File Delete" onclick="fileDelete('<?php echo $fileList[$i] ?>')"><span class="glyphicon glyphicon-trash" aria-hidden"true"></span></button>
                                 </div>
